@@ -5,7 +5,7 @@ const STOREFRONT_API_KEY = process.env.STOREFRONT_API_KEY;
 
 export async function GET(
   request: Request,
-  context: { params: Promise<{ saleId: string }> },
+  { params }: { params: Promise<{ saleId: string }> },
 ) {
   if (!API_URL || !STOREFRONT_API_KEY) {
     return NextResponse.json(
@@ -22,9 +22,9 @@ export async function GET(
     );
   }
 
-  const { saleId } = await context.params;
+  const { saleId } = await params;
 
-  const res = await fetch(
+  const upstream = await fetch(
     `${API_URL}/storefront/orders/${encodeURIComponent(saleId)}/status`,
     {
       headers: {
@@ -35,7 +35,6 @@ export async function GET(
     },
   );
 
-  const payload = await res.json().catch(() => null);
-
-  return NextResponse.json(payload, { status: res.status });
+  const payload = await upstream.json().catch(() => null);
+  return NextResponse.json(payload, { status: upstream.status });
 }
