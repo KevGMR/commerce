@@ -1,9 +1,6 @@
 const API_URL = process.env.API_URL;
 const STOREFRONT_API_KEY = process.env.STOREFRONT_API_KEY;
 
-console.log("[flexi/client] API_URL =", API_URL ? "set" : "MISSING");
-console.log("[flexi/client] STOREFRONT_API_KEY =", STOREFRONT_API_KEY ? "set" : "MISSING");
-
 export type FlexiError = Error & {
   status?: number;
   code?: string;
