@@ -47,6 +47,8 @@ export type Product = {
     maxVariantPrice: Money;
   };
   featuredImage: Image | null;
+  hoverImage: string | null;      // ← new
+  sizes: string[];                 // ← new
   images: Image[];
   variants: ProductVariant[];
   seo: {

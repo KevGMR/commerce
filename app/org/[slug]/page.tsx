@@ -1,8 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
-import { getProducts, getCollections, getOrg, formatMoney } from "lib/flexi";
+import { getOrg, getProducts, getCollections } from "lib/flexi";
 import { ProductGrid } from "components/product-grid";
-import { ProductCard } from "components/product-card";
+import { HomepageSection } from "components/homepage/section-renderer";
 
 export default async function OrgHome({
   params,
@@ -17,11 +17,37 @@ export default async function OrgHome({
     getCollections(slug),
   ]);
 
+  console.log("[OrgHome]", {
+    slug,
+    hasOrg: !!org,
+    sectionCount: org?.website?.homepageSections?.length,
+    sections: org?.website?.homepageSections,
+  });
+
+  console.log("[OrgHome] website:", JSON.stringify(org.website, null, 2));
+
   if (!org) return null;
 
-  const featuredCollections = collections.slice(0, 3);
+  const sections = org.website.homepageSections || [];
   const currency = org.currency;
 
+  // If the org has built a homepage, render that.
+  if (sections.length > 0) {
+    return (
+      <div className="flex flex-col">
+        {sections.map((section) => (
+          <HomepageSection
+            key={section.id}
+            section={section}
+            slug={slug}
+            currency={currency}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  // Fallback: the original hardcoded homepage for orgs without sections.
   return (
     <div className="flex flex-col">
       {/* Hero */}
@@ -36,13 +62,13 @@ export default async function OrgHome({
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               href="/products"
-              className="inline-flex items-center rounded-full bg-brand px-6 py-3 text-sm font-medium text-white transition-opacity hover:opacity-90"
+              className="inline-flex items-center rounded-full bg-brand px-6 py-3 text-sm font-medium text-white hover:opacity-90"
             >
               Shop all products
             </Link>
             <Link
               href="/collections"
-              className="inline-flex items-center rounded-full border border-neutral-300 px-6 py-3 text-sm font-medium transition-colors hover:bg-neutral-50"
+              className="inline-flex items-center rounded-full border border-neutral-300 px-6 py-3 text-sm font-medium hover:bg-neutral-50"
             >
               Browse collections
             </Link>
@@ -50,8 +76,7 @@ export default async function OrgHome({
         </div>
       </section>
 
-      {/* Featured collections */}
-      {featuredCollections.length > 0 && (
+      {collections.length > 0 && (
         <section className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6">
           <div className="mb-6 flex items-end justify-between gap-4">
             <div>
@@ -69,9 +94,8 @@ export default async function OrgHome({
               View all →
             </Link>
           </div>
-
           <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-3">
-            {featuredCollections.map((c) => (
+            {collections.slice(0, 3).map((c) => (
               <Link
                 key={c.id}
                 href={`/collection/${c.handle}`}
@@ -106,7 +130,6 @@ export default async function OrgHome({
         </section>
       )}
 
-      {/* Featured products */}
       {products.length > 0 && (
         <section className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6">
           <div className="mb-6 flex items-end justify-between gap-4">
@@ -125,12 +148,10 @@ export default async function OrgHome({
               View all →
             </Link>
           </div>
-
           <ProductGrid products={products} currency={currency} />
         </section>
       )}
 
-      {/* Trust strip */}
       <section className="border-t border-neutral-200 bg-neutral-50">
         <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-6 px-4 py-12 sm:grid-cols-3 sm:gap-8 sm:px-6">
           <TrustItem

@@ -36,6 +36,8 @@ type ApiProduct = {
   seoTitle?: string;
   seoDescription?: string;
   publishedAt?: string;
+  hoverImage?: string | null;
+  sizes?: string[];
 };
 
 function money(amount: number, currency: string = "KES"): Money {
@@ -97,6 +99,8 @@ function reshapeProduct(raw: ApiProduct): Product {
         raw.seoDescription || raw.description?.slice(0, 160) || "",
     },
     updatedAt: raw.publishedAt || new Date().toISOString(),
+    hoverImage: raw.hoverImage || null,
+    sizes: Array.isArray(raw.sizes) ? raw.sizes : [],
   };
 }
 
@@ -239,6 +243,11 @@ export type Org = {
     accentColor: string;
     headerLayout: "centered" | "left";
     published: boolean;
+    homepageSections: Array<{
+      id: string;
+      type: string;
+      config?: Record<string, any>;
+    }>;
   };
   location: {
     id: string;
@@ -272,6 +281,13 @@ type ApiOrgResponse = {
       accentColor?: string;
       headerLayout?: "centered" | "left";
       published?: boolean;
+      homepage?: {
+        sections?: Array<{
+          id: string;
+          type: string;
+          config?: Record<string, any>;
+        }>;
+      };
     };
     location?: {
       id: string;
@@ -312,6 +328,8 @@ export async function getOrg(orgSlug: string): Promise<Org | null> {
     const o = res.organization;
     const currency = o.settings?.currency || "KES";
 
+    console.log("[getOrg] raw website:", JSON.stringify(o.website, null, 2));
+
     return {
       id: o.id,
       name: o.name,
@@ -327,6 +345,13 @@ export async function getOrg(orgSlug: string): Promise<Org | null> {
         headerLayout:
           o.website?.headerLayout === "centered" ? "centered" : "left",
         published: o.website?.published === true,
+        homepageSections: Array.isArray(o.website?.homepage?.sections)
+          ? o.website.homepage.sections.map((s) => ({
+              id: s.id,
+              type: s.type,
+              config: s.config || {},
+            }))
+          : [],
       },
       location: o.location
         ? {
@@ -535,6 +560,13 @@ export async function getOrgClient(orgSlug: string): Promise<Org | null> {
         headerLayout:
           o.website?.headerLayout === "centered" ? "centered" : "left",
         published: o.website?.published === true,
+        homepageSections: Array.isArray(o.website?.homepage?.sections)
+        ? o.website.homepage.sections.map((s: any) => ({
+            id: s.id,
+            type: s.type,
+            config: s.config || {},
+          }))
+        : [],
       },
       location: o.location
         ? {
