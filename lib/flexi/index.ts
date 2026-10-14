@@ -246,7 +246,7 @@ export type Org = {
     homepageSections: Array<{
       id: string;
       type: string;
-      config?: Record<string, any>;
+      config: Record<string, any>;
     }>;
   };
   location: {
@@ -285,7 +285,7 @@ type ApiOrgResponse = {
         sections?: Array<{
           id: string;
           type: string;
-          config?: Record<string, any>;
+          config: Record<string, any>;
         }>;
       };
     };

@@ -17,15 +17,6 @@ export default async function OrgHome({
     getCollections(slug),
   ]);
 
-  console.log("[OrgHome]", {
-    slug,
-    hasOrg: !!org,
-    sectionCount: org?.website?.homepageSections?.length,
-    sections: org?.website?.homepageSections,
-  });
-
-  console.log("[OrgHome] website:", JSON.stringify(org.website, null, 2));
-
   if (!org) return null;
 
   const sections = org.website.homepageSections || [];
