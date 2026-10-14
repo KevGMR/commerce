@@ -55,6 +55,10 @@ export function ShippingEstimator({
       return;
     }
     const firstOption = category.options[0];
+    if (!firstOption) {
+      onChange(null);
+      return;
+    }
     onChange({
       categoryName: category.categoryName,
       optionName: firstOption.optionName,
@@ -103,19 +107,23 @@ export function ShippingEstimator({
           className="w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-brand focus:outline-none"
         >
           <option value="">Select a method…</option>
-          {categories.map((c) => (
-            <option key={c.id} value={c.categoryName}>
-              {c.categoryName}
-              {c.options.length > 0 &&
-                ` — from ${formatMoney(
-                  {
-                    amount: c.options[0].price.toFixed(2),
-                    currencyCode: currency,
-                  },
-                  currency,
-                )}`}
-            </option>
-          ))}
+          {categories.map((c) => {
+            const firstPrice = c.options[0]?.price;
+            return (
+              <option key={c.id} value={c.categoryName}>
+                {c.categoryName}
+                {firstPrice !== undefined
+                  ? ` — from ${formatMoney(
+                      {
+                        amount: firstPrice.toFixed(2),
+                        currencyCode: currency,
+                      },
+                      currency,
+                    )}`
+                  : ""}
+              </option>
+            );
+          })}
         </select>
       </div>
 

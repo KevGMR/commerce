@@ -22,7 +22,16 @@ export function ProductGallery({ images, title }: Props) {
     );
   }
 
-  const current = images[active];
+  const current = images[active] ?? images[0];
+  if (!current) {
+    return (
+      <div className="relative aspect-square overflow-hidden rounded-lg bg-neutral-100">
+        <div className="flex h-full items-center justify-center text-neutral-300 text-sm">
+          No image
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">

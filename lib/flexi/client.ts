@@ -1,5 +1,3 @@
-import type { FlexiFetchOptions } from "./types";
-
 const API_URL = process.env.API_URL;
 const STOREFRONT_API_KEY = process.env.STOREFRONT_API_KEY;
 
