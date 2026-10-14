@@ -23,9 +23,10 @@ export async function proxy(request: NextRequest) {
   const hostname = request.headers.get("host") || "";
   console.log(`[proxy] ${hostname} → ${pathname}${search}`);
   
-  const rootDomain = (process.env.NEXT_PUBLIC_ROOT_DOMAIN || "localhost:3001")
-    .split(":")[0];
-  const cleanHost = hostname.split(":")[0].toLowerCase();
+  const rootDomain =
+    (process.env.NEXT_PUBLIC_ROOT_DOMAIN || "localhost:3001")
+      .split(":")[0] || "localhost";
+    const cleanHost = (hostname.split(":")[0] || "").toLowerCase();
 
   let slug: string | null = null;
 
