@@ -101,6 +101,7 @@ function reshapeProduct(raw: ApiProduct): Product {
     updatedAt: raw.publishedAt || new Date().toISOString(),
     hoverImage: raw.hoverImage || null,
     sizes: Array.isArray(raw.sizes) ? raw.sizes : [],
+    compareAtPrice: typeof raw.compareAtPrice === "number" ? raw.compareAtPrice : null,
   };
 }
 
