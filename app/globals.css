@@ -12,6 +12,8 @@
   /* Radius and motion tokens */
   --radius-card: 0.5rem;
   --transition-fast: 150ms ease-out;
+
+  /* Type scale */
   --text-display: 3.5rem;
   --text-display--line-height: 1.05;
   --text-display--font-weight: 600;
@@ -22,14 +24,21 @@
   --text-h2--font-weight: 600;
   --text-h2--letter-spacing: -0.01em;
 
+  --text-h3: 1.25rem;
+  --text-h3--line-height: 1.25;
+  --text-h3--font-weight: 600;
+
   --text-eyebrow: 0.6875rem;
   --text-eyebrow--line-height: 1;
   --text-eyebrow--font-weight: 500;
   --text-eyebrow--letter-spacing: 0.12em;
 
   --text-body: 0.9375rem;
+  --text-body--line-height: 1.55;
+
   --text-label: 0.875rem;
 
+  /* Section rhythm */
   --space-section-tight: 3rem;
   --space-section: 5rem;
   --space-section-loose: 7rem;

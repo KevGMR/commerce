@@ -26,23 +26,30 @@ export function ProductCard({ product, currency, priority = false }: Props) {
   const maxPrice = product.priceRange.maxVariantPrice;
   const hasRange = minPrice.amount !== maxPrice.amount;
 
+  const priceNum = Number(minPrice.amount);
+  const compareNum = product.compareAtPrice ?? null;
+  const hasDiscount =
+    compareNum != null && compareNum > priceNum && priceNum > 0;
+  const discountPct = hasDiscount
+    ? Math.round(((compareNum! - priceNum) / compareNum!) * 100)
+    : 0;
+
   return (
     <Link
       href={`/product/${product.handle}`}
-      className="group flex flex-col overflow-hidden rounded-lg border border-neutral-200 bg-white transition-shadow hover:shadow-md"
+      className="group flex flex-col"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <div className="relative aspect-square overflow-hidden bg-neutral-100">
-        {/* Primary image */}
+      <div className="relative aspect-[3/4] overflow-hidden rounded-md bg-neutral-100">
         {primary?.url ? (
           <Image
             src={primary.url}
             alt={primary.altText || product.title}
             fill
             sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
-            className={`object-cover transition-opacity duration-500 ${
-              showHover ? "opacity-0" : "opacity-100"
+            className={`object-cover transition-all duration-700 ${
+              showHover ? "scale-105 opacity-0" : "scale-100 opacity-100"
             }`}
             priority={priority}
           />
@@ -52,30 +59,35 @@ export function ProductCard({ product, currency, priority = false }: Props) {
           </div>
         )}
 
-        {/* Hover image */}
         {secondary && (
           <Image
             src={secondary}
             alt={product.title}
             fill
             sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
-            className={`object-cover transition-opacity duration-500 ${
-              showHover ? "opacity-100" : "opacity-0"
+            className={`object-cover transition-all duration-700 ${
+              showHover ? "scale-100 opacity-100" : "scale-105 opacity-0"
             }`}
           />
         )}
 
+        {/* Discount badge — top-left */}
+        {hasDiscount && inStock && (
+          <div className="absolute left-2 top-2 z-10 rounded-sm bg-neutral-900 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-white">
+            −{discountPct}%
+          </div>
+        )}
+
         {/* Sold out overlay */}
         {!inStock && (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-[1px]">
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 backdrop-blur-[1px]">
             <span className="rounded-full bg-neutral-900 px-3 py-1 text-xs font-medium text-white">
               Sold out
             </span>
           </div>
         )}
 
-        {/* Sizes overlay — appears on hover when sizes exist and no
-            bigger overlay is taking focus */}
+        {/* Sizes overlay on hover */}
         {hasSizes && inStock && (
           <div
             className={`pointer-events-none absolute inset-x-0 bottom-0 translate-y-2 bg-gradient-to-t from-black/60 to-transparent px-3 pb-3 pt-6 opacity-0 transition-all duration-300 ${
@@ -96,11 +108,24 @@ export function ProductCard({ product, currency, priority = false }: Props) {
         )}
       </div>
 
-      <div className="flex flex-1 flex-col gap-1 p-3 sm:p-4">
-        <h3 className="line-clamp-2 text-sm font-medium leading-snug text-neutral-900">
+      <div className="mt-3 flex flex-col gap-1">
+        {product.vendor && (
+          <p className="text-eyebrow uppercase text-neutral-500">
+            {product.vendor}
+          </p>
+        )}
+        <h3 className="line-clamp-2 text-label font-medium leading-snug text-neutral-900">
           {product.title}
         </h3>
-        <p className="mt-auto text-sm font-semibold text-neutral-900">
+        <p className="mt-0.5 text-label text-neutral-900">
+          {hasDiscount && (
+            <span className="mr-2 text-neutral-400 line-through">
+              {formatMoney(
+                { amount: compareNum!.toFixed(2), currencyCode: minPrice.currencyCode },
+                currency,
+              )}
+            </span>
+          )}
           {hasRange ? (
             <>
               {formatMoney(minPrice, currency)}
@@ -108,7 +133,9 @@ export function ProductCard({ product, currency, priority = false }: Props) {
               {formatMoney(maxPrice, currency)}
             </>
           ) : (
-            formatMoney(minPrice, currency)
+            <span className={hasDiscount ? "font-semibold" : ""}>
+              {formatMoney(minPrice, currency)}
+            </span>
           )}
         </p>
       </div>

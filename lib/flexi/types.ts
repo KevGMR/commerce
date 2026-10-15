@@ -56,6 +56,7 @@ export type Product = {
     description: string;
   };
   updatedAt: string;
+  compareAtPrice?: number | null;
 };
 
 export type Collection = {
