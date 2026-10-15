@@ -4,6 +4,8 @@ import { CollectionSection } from "./collection";
 import { RichTextSection } from "./rich-text";
 import { TrustStripSection } from "./trust-strip";
 import { BannerSection } from "./banner";
+import { FeaturedCategorySection } from "./featured-category";
+import { ImageTextSection } from "./image-text";
 
 type Section = {
   id: string;
@@ -45,6 +47,10 @@ export async function HomepageSection({
       return <TrustStripSection config={section.config} />;
     case "banner":
       return <BannerSection config={section.config} />;
+    case "featured-category":
+      return <FeaturedCategorySection config={section.config} slug={slug} />;
+    case "image-text":
+      return <ImageTextSection config={section.config} />;
     default:
       return null;
   }
