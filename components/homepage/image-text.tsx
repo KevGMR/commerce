@@ -24,8 +24,9 @@ export function ImageTextSection({ config }: { config: Config }) {
 
   if (!heading && !subheading && !body && !imageUrl) return null;
 
-  const hasImage = Boolean(imageUrl);
-  const hasText = Boolean(heading || subheading || body || (ctaLabel && ctaHref));
+  const hasText = Boolean(
+    heading || subheading || body || (ctaLabel && ctaHref),
+  );
   const imageFirst = imagePosition === "left";
 
   const text = (
@@ -41,7 +42,7 @@ export function ImageTextSection({ config }: { config: Config }) {
         </p>
       )}
       {body && (
-        <p className="mt-4 max-w-prose text-base text-neutral-600 whitespace-pre-line">
+        <p className="mt-4 max-w-prose whitespace-pre-line text-base text-neutral-600">
           {body}
         </p>
       )}
@@ -56,13 +57,19 @@ export function ImageTextSection({ config }: { config: Config }) {
     </div>
   );
 
-  if (!hasImage) {
+  // No image — render text block only.
+  if (!imageUrl) {
     return (
       <section className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6">
         <div className="max-w-3xl">{text}</div>
       </section>
     );
   }
+
+  // From here TypeScript knows `imageUrl` is a non-empty string.
+  const desktopImageUrl: string = imageUrl;
+  const mobileImageUrl: string | undefined =
+    imageUrlMobile && imageUrlMobile !== imageUrl ? imageUrlMobile : undefined;
 
   return (
     <section className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6">
@@ -71,20 +78,22 @@ export function ImageTextSection({ config }: { config: Config }) {
           hasText ? "" : "md:grid-cols-1"
         }`}
       >
-        <div className={`relative aspect-[4/3] overflow-hidden rounded-lg bg-neutral-100 ${
-          imageFirst ? "md:order-1" : "md:order-2"
-        }`}>
-          {imageUrlMobile && imageUrlMobile !== imageUrl ? (
+        <div
+          className={`relative aspect-[4/3] overflow-hidden rounded-lg bg-neutral-100 ${
+            imageFirst ? "md:order-1" : "md:order-2"
+          }`}
+        >
+          {mobileImageUrl ? (
             <>
               <Image
-                src={imageUrlMobile}
+                src={mobileImageUrl}
                 alt={heading || ""}
                 fill
                 sizes="(min-width: 768px) 0px, 100vw"
                 className="object-cover md:hidden"
               />
               <Image
-                src={imageUrl}
+                src={desktopImageUrl}
                 alt={heading || ""}
                 fill
                 sizes="(min-width: 768px) 50vw, 0px"
@@ -93,7 +102,7 @@ export function ImageTextSection({ config }: { config: Config }) {
             </>
           ) : (
             <Image
-              src={imageUrl}
+              src={desktopImageUrl}
               alt={heading || ""}
               fill
               sizes="(min-width: 768px) 50vw, 100vw"
