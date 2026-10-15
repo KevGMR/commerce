@@ -6,6 +6,7 @@ import { TrustStripSection } from "./trust-strip";
 import { BannerSection } from "./banner";
 import { FeaturedCategorySection } from "./featured-category";
 import { ImageTextSection } from "./image-text";
+import { AnnouncementSection } from "./announcement";
 
 type Section = {
   id: string;
@@ -43,14 +44,16 @@ export async function HomepageSection({
       );
     case "rich-text":
       return <RichTextSection config={section.config} />;
-    case "trust-strip":
-      return <TrustStripSection config={section.config} />;
     case "banner":
       return <BannerSection config={section.config} />;
     case "featured-category":
       return <FeaturedCategorySection config={section.config} slug={slug} />;
     case "image-text":
       return <ImageTextSection config={section.config} />;
+    case "announcement":
+      return <AnnouncementSection config={section.config} />;
+    // "trust-strip" is intentionally not handled — use website.announcement
+    // or the announcement section type instead.
     default:
       return null;
   }

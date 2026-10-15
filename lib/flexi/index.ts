@@ -248,6 +248,11 @@ export type Org = {
       type: string;
       config: Record<string, any>;
     }>;
+    announcement: {
+      text: string;
+      href?: string | null;
+      isActive?: boolean;
+    } | null;
   };
   location: {
     id: string;
@@ -288,6 +293,11 @@ type ApiOrgResponse = {
           config: Record<string, any>;
         }>;
       };
+      announcement?: {
+        text?: string | null;
+        href?: string | null;
+        isActive?: boolean;
+      } | null;
     };
     location?: {
       id: string;
@@ -352,6 +362,13 @@ export async function getOrg(orgSlug: string): Promise<Org | null> {
               config: s.config || {},
             }))
           : [],
+        announcement: o.website?.announcement?.text
+          ? {
+              text: o.website.announcement.text,
+              href: o.website.announcement.href ?? null,
+              isActive: o.website.announcement.isActive !== false,
+            }
+          : null,
       },
       location: o.location
         ? {
@@ -567,6 +584,13 @@ export async function getOrgClient(orgSlug: string): Promise<Org | null> {
             config: s.config || {},
           }))
         : [],
+        announcement: o.website?.announcement?.text
+          ? {
+              text: o.website.announcement.text,
+              href: o.website.announcement.href ?? null,
+              isActive: o.website.announcement.isActive !== false,
+            }
+          : null,
       },
       location: o.location
         ? {

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { CartProvider } from "components/cart/cart-context";
 import { Header } from "components/layout/header";
 import { Footer } from "components/layout/footer";
+import { AnnouncementBar } from "components/announcement-bar";
 import { getOrg } from "lib/flexi";
 
 export async function generateMetadata({
@@ -54,6 +55,7 @@ export default async function OrgLayout({
         style={brandVars}
         className="flex min-h-screen flex-col bg-white text-neutral-900"
       >
+        <AnnouncementBar announcement={org.website.announcement} />
         <Header
           orgName={org.name}
           slug={slug}
