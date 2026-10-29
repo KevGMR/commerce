@@ -27,6 +27,7 @@ type ApiProduct = {
     id: string;
     sku: string;
     title: string;
+    selectedOptions?: { name: string; value: string }[];
     price: number;
     compareAtPrice?: number | null;
     available: number | null;
@@ -49,6 +50,12 @@ function reshapeImage(raw: { url: string; alt?: string }): Image {
 }
 
 function reshapeVariant(raw: ApiProduct["variants"][number]): ProductVariant {
+  const selected = Array.isArray(raw.selectedOptions)
+    ? raw.selectedOptions
+        .filter((o) => o && o.name && o.value)
+        .map((o) => ({ name: o.name, value: o.value }))
+    : [];
+
   return {
     id: raw.id,
     sku: raw.sku,
@@ -57,7 +64,15 @@ function reshapeVariant(raw: ApiProduct["variants"][number]): ProductVariant {
     compareAtPrice:
       raw.compareAtPrice != null ? money(raw.compareAtPrice) : null,
     availableForSale: raw.available === null || raw.available > 0,
-    selectedOptions: raw.title ? [{ name: "Option", value: raw.title }] : [],
+    // Prefer the real selectedOptions from the server. Fall back to the
+    // legacy single "Option" shape only if the server didn't send any,
+    // so old cached responses (before this fix deployed) still work.
+    selectedOptions:
+      selected.length > 0
+        ? selected
+        : raw.title
+          ? [{ name: "Option", value: raw.title }]
+          : [],
   };
 }
 

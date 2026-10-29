@@ -1,8 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getProduct, getProducts, getOrg, formatMoney } from "lib/flexi";
-import { ProductGallery } from "components/product-gallery";
-import { AddToCartClient } from "components/add-to-cart-client";
+import { getProduct, getProducts, getOrg } from "lib/flexi";
+import { ProductDetailInteractive } from "components/product-detail-interactive";
 import { ProductGrid } from "components/product-grid";
 
 export async function generateMetadata({
@@ -40,14 +39,12 @@ export default async function ProductPage({
         ? [product.featuredImage]
         : [];
 
-  // Related products: same collection if we had that data; fallback to any others
-  const related = (await getProducts(slug, { limit: 8 })).filter(
-    (p) => p.id !== product.id,
-  ).slice(0, 4);
+  const related = (await getProducts(slug, { limit: 8 }))
+    .filter((p) => p.id !== product.id)
+    .slice(0, 4);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
-      {/* Breadcrumb */}
       <nav className="mb-6 flex items-center gap-1.5 text-xs text-neutral-500">
         <Link href="/" className="hover:text-brand">
           Home
@@ -57,46 +54,27 @@ export default async function ProductPage({
           Shop
         </Link>
         <span>·</span>
-        <span className="text-neutral-900 truncate">{product.title}</span>
+        <span className="truncate text-neutral-900">{product.title}</span>
       </nav>
 
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-12">
-        <ProductGallery images={images} title={product.title} />
+      <ProductDetailInteractive
+        product={product}
+        images={images}
+        currency={org.currency}
+      />
 
-        <div className="space-y-6">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-              {product.title}
-            </h1>
-            <p className="mt-2 text-xl font-medium">
-              {formatMoney(product.priceRange.minVariantPrice, org.currency)}
-            </p>
-          </div>
-
-          {product.description && (
-            <p className="whitespace-pre-line text-sm leading-relaxed text-neutral-600">
-              {product.description}
-            </p>
+      {product.vendor || product.productType || product.tags.length > 0 ? (
+        <dl className="mt-10 grid grid-cols-1 gap-2 border-t border-neutral-200 pt-6 text-sm">
+          {product.vendor && <Row label="Vendor" value={product.vendor} />}
+          {product.productType && (
+            <Row label="Type" value={product.productType} />
           )}
+          {product.tags.length > 0 && (
+            <Row label="Tags" value={product.tags.join(", ")} />
+          )}
+        </dl>
+      ) : null}
 
-          <AddToCartClient product={product} currency={org.currency} />
-
-          {/* Product metadata */}
-          <dl className="grid grid-cols-1 gap-2 border-t border-neutral-200 pt-6 text-sm">
-            {product.vendor && (
-              <Row label="Vendor" value={product.vendor} />
-            )}
-            {product.productType && (
-              <Row label="Type" value={product.productType} />
-            )}
-            {product.tags.length > 0 && (
-              <Row label="Tags" value={product.tags.join(", ")} />
-            )}
-          </dl>
-        </div>
-      </div>
-
-      {/* Related products */}
       {related.length > 0 && (
         <section className="mt-16 border-t border-neutral-200 pt-12">
           <h2 className="mb-6 text-xl font-semibold tracking-tight">
@@ -112,8 +90,8 @@ export default async function ProductPage({
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between gap-4">
-      <dt className="text-neutral-500">{label}</dt>
-      <dd className="text-right text-neutral-900">{value}</dd>
+      <span className="text-neutral-500">{label}</span>
+      <span className="text-right text-neutral-900">{value}</span>
     </div>
   );
 }
