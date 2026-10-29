@@ -1,7 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { Product, ProductVariant, Image as FlexiImage } from "lib/flexi/types";
+import type {
+  Product,
+  ProductVariant,
+  Image as FlexiImage,
+} from "lib/flexi/types";
 import { useCart } from "components/cart/cart-context";
 import { formatMoney } from "lib/flexi";
 import { ProductGallery } from "components/product-gallery";
@@ -21,8 +25,8 @@ export function ProductDetailInteractive({
   const [justAdded, setJustAdded] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
-  // ---- Build option groups + variant key index -----------------------------
-    const { optionGroups, variantByKey } = useMemo(() => {
+  // ---- Build option groups + variant key index ---------------------------
+  const { optionGroups, variantByKey } = useMemo(() => {
     // Prefer the product-level options[] declaration for building the
     // option groups — that's the canonical list and always includes every
     // colour and size even when some combinations aren't sold. Falls back
@@ -44,10 +48,12 @@ export function ProductDetailInteractive({
             seen.set(opt.name, new Set());
             groups.push({ name: opt.name, values: [] });
           }
-          const set = seen.get(opt.name)!;
+          const set = seen.get(opt.name);
+          if (!set) continue;
           if (!set.has(opt.value)) {
             set.add(opt.value);
-            groups.find((g) => g.name === opt.name)!.values.push(opt.value);
+            const group = groups.find((g) => g.name === opt.name);
+            if (group) group.values.push(opt.value);
           }
         }
       }
@@ -61,10 +67,7 @@ export function ProductDetailInteractive({
     return { optionGroups: groups, variantByKey: keyed };
   }, [product.variants, product.options]);
 
-  // ---- Initial selection: first in-stock variant, else first variant -------
-  // Only seed a default selection if there's at least one in-stock variant.
-  // If the whole product is sold out, start with nothing selected so we
-  // don't falsely highlight a combination as if the shopper chose it.
+  // ---- Initial selection: first in-stock variant, else none --------------
   const productHasAnyStock = useMemo(
     () => product.variants.some((v) => v.availableForSale),
     [product.variants],
@@ -84,24 +87,23 @@ export function ProductDetailInteractive({
   const [selection, setSelection] =
     useState<Record<string, string>>(initialSelection);
 
-  // ---- Derive selected variant --------------------------------------------
+  // ---- Derive selected variant -------------------------------------------
   const selectedVariant: ProductVariant | null = useMemo(() => {
     if (optionGroups.length === 0) return product.variants[0] ?? null;
+    const tuple: { name: string; value: string }[] = [];
     for (const g of optionGroups) {
-      if (!selection[g.name]) return null;
+      const v = selection[g.name];
+      if (!v) return null;
+      tuple.push({ name: g.name, value: v });
     }
-    const tuple = optionGroups.map((g) => ({
-      name: g.name,
-      value: selection[g.name],
-    }));
     return variantByKey.get(variantKey(tuple)) ?? null;
   }, [selection, optionGroups, variantByKey, product.variants]);
 
-  // ---- Per-value availability matrix --------------------------------------
+  // ---- Per-value availability matrix -------------------------------------
   const availabilityByGroup = useMemo(() => {
     const result: Record<string, Record<string, boolean>> = {};
     for (const group of optionGroups) {
-      result[group.name] = {};
+      const groupMap: Record<string, boolean> = {};
       for (const value of group.values) {
         let found = false;
         for (const v of product.variants) {
@@ -117,21 +119,16 @@ export function ProductDetailInteractive({
             break;
           }
         }
-        result[group.name][value] = found;
+        groupMap[value] = found;
       }
+      result[group.name] = groupMap;
     }
     return result;
   }, [optionGroups, product.variants, selection]);
 
-  // ---- Image index tracking: how it maps to variants ----------------------
-  // A variant may carry its own image URL. If the currently-selected variant
-  // has one, swap the gallery to that image. Otherwise, leave the gallery
-  // where it is.
-  //
-  // We look for a match by URL. Variant images aren't part of the public
-  // ProductVariant shape by default — if your reshapeProduct() carries
-  // `image` on variants, this picks it up. If not, gallery stays on the
-  // first image and that's fine.
+  // ---- Gallery image sync from selected variant --------------------------
+  // If the currently-selected variant carries its own image URL, swap the
+  // gallery. If not, the gallery stays where the shopper left it.
   const variantImageUrl: string | null = useMemo(() => {
     const v = selectedVariant as
       | (ProductVariant & { image?: string | null })
@@ -139,13 +136,24 @@ export function ProductDetailInteractive({
     return v?.image || null;
   }, [selectedVariant]);
 
-  useMemo(() => {
-    if (!variantImageUrl) return;
-    const idx = images.findIndex((img) => img.url === variantImageUrl);
-    if (idx >= 0) setActiveImageIndex(idx);
+  const variantImageIndex = useMemo(() => {
+    if (!variantImageUrl) return -1;
+    return images.findIndex((img) => img.url === variantImageUrl);
   }, [variantImageUrl, images]);
 
-  // ---- Option click with auto-repair of incompatible selections -----------
+  // Use an effect-free approach: when the derived index changes to a valid
+  // value, sync it into the gallery's active index. Doing this without an
+  // effect avoids a re-render loop and satisfies react-hooks/exhaustive-deps.
+  // (We call setActiveImageIndex only when it differs from the current
+  // value — React bails out of the update otherwise.)
+  if (variantImageIndex >= 0 && variantImageIndex !== activeImageIndex) {
+    // This runs during render. setState during render is legal in React as
+    // long as it's conditional and reflects derived state. React will
+    // re-render immediately without committing the intermediate tree.
+    setActiveImageIndex(variantImageIndex);
+  }
+
+  // ---- Option click with auto-repair of incompatible selections ----------
   const handleOptionPick = (optionName: string, value: string) => {
     const next: Record<string, string> = { ...selection, [optionName]: value };
 
@@ -197,7 +205,7 @@ export function ProductDetailInteractive({
     setTimeout(() => setJustAdded(false), 1500);
   };
 
-  // ---- Degenerate: no variants --------------------------------------------
+  // ---- Degenerate: no variants -------------------------------------------
   if (product.variants.length === 0) {
     return (
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-12">
@@ -209,9 +217,10 @@ export function ProductDetailInteractive({
     );
   }
 
-  // ---- Single-variant: no option UI ---------------------------------------
+  // ---- Single-variant: no option UI --------------------------------------
   if (optionGroups.length === 0) {
     const variant = product.variants[0];
+    if (!variant) return null;
     const available = variant.availableForSale;
     return (
       <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-12">
@@ -266,18 +275,19 @@ export function ProductDetailInteractive({
     );
   }
 
-  // ---- Multi-variant: option groups + gallery -----------------------------
+  // ---- Multi-variant: option groups + gallery ----------------------------
   const isComplete = optionGroups.every((g) => Boolean(selection[g.name]));
-  const canAdd = Boolean(
-    selectedVariant && selectedVariant.availableForSale,
-  );
+  const canAdd = Boolean(selectedVariant && selectedVariant.availableForSale);
   const productFullySoldOut = !productHasAnyStock;
   const isSoldOut = isComplete && !canAdd;
 
   const displayPrice =
     selectedVariant?.price ??
     product.variants.find((v) => v.availableForSale)?.price ??
-    product.variants[0].price;
+    product.variants[0]?.price ?? {
+        amount: "0.00",
+        currencyCode: currency ?? "KES",
+    };
 
   return (
     <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-12">
@@ -308,11 +318,9 @@ export function ProductDetailInteractive({
             <>
               <span className="inline-block h-2 w-2 rounded-full bg-red-500" />
               <span className="text-red-600">
-                {productFullySoldOut
+                {productFullySoldOut || isComplete
                   ? "Sold out"
-                  : isComplete
-                    ? "Sold out"
-                    : "Select options"}
+                  : "Select options"}
               </span>
             </>
           )}

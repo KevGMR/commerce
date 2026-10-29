@@ -31,6 +31,10 @@ export function ProductGallery({
       ? Math.max(0, Math.min(activeIndex, images.length - 1))
       : internalIndex;
   const active = images[index];
+  if (!active) {
+    // Unreachable given the empty-check above, but TS wants the narrow.
+    return null;
+  }
 
   const setIndex = (next: number) => {
     if (onActiveIndexChange) {
