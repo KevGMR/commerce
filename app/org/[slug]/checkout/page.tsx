@@ -38,6 +38,24 @@ export default function CheckoutPage() {
     );
   }
 
+  if (!org.mpesaStkAvailable) {
+    return (
+      <div className="mx-auto flex w-full max-w-md flex-col items-center px-4 py-20 text-center sm:px-6">
+        <h1 className="text-2xl font-semibold">Checkout unavailable</h1>
+        <p className="mt-3 text-sm text-neutral-500">
+          This store isn't accepting online payments right now. Please
+          contact them directly to complete your order.
+        </p>
+        <Link
+          href="/cart"
+          className="mt-8 inline-block rounded-full bg-brand px-8 py-3 text-sm font-medium text-white hover:opacity-90"
+        >
+          Back to cart
+        </Link>
+      </div>
+    );
+  }
+
   if (cart.lines.length === 0) {
     return (
       <div className="mx-auto flex w-full max-w-md flex-col items-center px-4 py-20 text-center sm:px-6">
