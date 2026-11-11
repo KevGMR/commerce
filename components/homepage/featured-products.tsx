@@ -1,5 +1,6 @@
+
 import Link from "next/link";
-import { getProducts, getProduct } from "lib/flexi";
+import { getProducts, getProductsByIds } from "lib/flexi";
 import { ProductGrid } from "components/product-grid";
 import type { Product } from "lib/flexi/types";
 
@@ -13,13 +14,12 @@ type Config = {
 
 async function loadProducts(slug: string, config: Config): Promise<Product[]> {
   const limit = config.limit ?? 8;
-  if (config.mode === "manual" && Array.isArray(config.productIds) && config.productIds.length > 0) {
-    // Fetch each product by ID via the public products endpoint, then filter.
-    // Simpler: use getProducts and filter by ID (page-level API doesn't have
-    // a by-ids endpoint yet).
-    const all = await getProducts(slug, { limit: 100 });
-    const wanted = new Set(config.productIds);
-    return all.filter((p) => wanted.has(p.id)).slice(0, limit);
+  if (
+    config.mode === "manual" &&
+    Array.isArray(config.productIds) &&
+    config.productIds.length > 0
+  ) {
+    return getProductsByIds(slug, config.productIds.slice(0, limit));
   }
   return getProducts(slug, { limit });
 }

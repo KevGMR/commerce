@@ -166,6 +166,23 @@ export async function getProducts(
   return (res.products || []).map(reshapeProduct);
 }
 
+export async function getProductsByIds(
+  orgSlug: string,
+  ids: string[],
+): Promise<Product[]> {
+  if (!Array.isArray(ids) || ids.length === 0) return [];
+  const res = await flexiFetch<{ products: ApiProduct[] }>(
+    "/storefront/products/by-ids",
+    {
+      orgSlug,
+      searchParams: { ids: ids.join(",") },
+      revalidate: 60,
+      tags: ["products"],
+    },
+  );
+  return (res.products || []).map(reshapeProduct);
+}
+
 export async function getProduct(
   orgSlug: string,
   handle: string,
