@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { getOrg, getProducts, getCollections } from "lib/flexi";
@@ -27,12 +28,14 @@ export default async function OrgHome({
     return (
       <div className="flex flex-col">
         {sections.map((section) => (
-          <HomepageSection
-            key={section.id}
-            section={section}
-            slug={slug}
-            currency={currency}
-          />
+          <Suspense key={section.id} fallback={<div className="min-h-[200px]" />}>
+            <HomepageSection
+              key={section.id}
+              section={section}
+              slug={slug}
+              currency={currency}
+            />
+          </Suspense>
         ))}
       </div>
     );

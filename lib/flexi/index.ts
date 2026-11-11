@@ -282,6 +282,7 @@ export type Org = {
     } | null;
   } | null;
   deliveryCategories: import("./types").DeliveryCategory[];
+  mpesaStkAvailable: boolean;
 };
 
 type ApiOrgResponse = {
@@ -340,6 +341,7 @@ type ApiOrgResponse = {
         requiresLandmark?: boolean;
       }>;
     }>;
+    mpesaStkAvailable?: boolean;
   };
 };
 
@@ -353,8 +355,6 @@ export async function getOrg(orgSlug: string): Promise<Org | null> {
 
     const o = res.organization;
     const currency = o.settings?.currency || "KES";
-
-    console.log("[getOrg] raw website:", JSON.stringify(o.website, null, 2));
 
     return {
       id: o.id,
@@ -409,6 +409,7 @@ export async function getOrg(orgSlug: string): Promise<Org | null> {
             })),
           }))
         : [],
+      mpesaStkAvailable: o.mpesaStkAvailable === true,
     };
   } catch (err: any) {
     if (err?.status === 404) return null;
@@ -631,6 +632,7 @@ export async function getOrgClient(orgSlug: string): Promise<Org | null> {
             })),
           }))
         : [],
+      mpesaStkAvailable: o.mpesaStkAvailable === true,
     };
   } catch {
     return null;

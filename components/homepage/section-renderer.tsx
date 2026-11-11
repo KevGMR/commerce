@@ -52,8 +52,8 @@ export async function HomepageSection({
       return <ImageTextSection config={section.config} />;
     case "announcement":
       return <AnnouncementSection config={section.config} />;
-    // "trust-strip" is intentionally not handled — use website.announcement
-    // or the announcement section type instead.
+    case "trust-strip":
+      return <TrustStripSection config={section.config} />;
     default:
       return null;
   }
